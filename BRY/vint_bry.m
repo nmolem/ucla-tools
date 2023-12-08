@@ -7,7 +7,6 @@
   fname = '/paracas/nmolem/GREEN/green_bry.20140821002229.nc';
   oname = [fname(1:end-3) '_int.nc'];
 
-  disp('hoi')
 
   ts= 6;
   tb= 6;
