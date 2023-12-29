@@ -16,6 +16,10 @@ nccreate(frcfile,'time','Dimensions',{'time',0},'datatype','double');
 ncwriteatt(frcfile,'time','long_name','time since 2000-1-1');
 ncwriteatt(frcfile,'time','units','day');
 
+nccreate(frcfile,'rad_time','Dimensions',{'time',0},'datatype','double');
+ncwriteatt(frcfile,'rad_time','long_name','time since 2000-1-1');
+ncwriteatt(frcfile,'rad_time','units','day');
+
 nccreate(frcfile,'uwnd','Dimensions',{'xi_rho',nx,'eta_rho',ny,'time',0},'datatype','single');
 ncwriteatt(frcfile,'uwnd','long_name','10 meter wind in x-direction');
 ncwriteatt(frcfile,'uwnd','units','m/s');
