@@ -63,7 +63,8 @@ root_name= '/zulu/nmolem/WESTC/westc';
 %root_name= '/zulu/nmolem/HRTEST/hrtest';
 
 
-swcorrname = [frc_dir 'SSR_correction.nc'];
+maskname   = [frc_dir 'IFS_mask.nc'];
+swcorrname = [frc_dir 'IFS_rad_cor.nc'];
 
 coarse_frc   = 1; % forcing files at half the resolution of the grid
 rad_corr     = 1; % Multiplicative correction of swr and lwr to observations
@@ -144,7 +145,7 @@ add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
    lon_frc = lon_frc(i0:i1);
    lat_frc = flipud(lat_frc(j0:j1));
 
-   mask = ncread(mskname,'mask',[i0 j0 1],[fnx fny 1]); 
+   mask = ncread(maskname,'mask',[i0 j0 1],[fnx fny 1]); 
    mask = fliplr(mask); % to deal with upside down IFS data
 
 
