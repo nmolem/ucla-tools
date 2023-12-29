@@ -44,7 +44,7 @@
   chd_data
 %  ncread(par_data,'ocean_time',tind,1)/(24*3600)
   ptime = ncread(par_data,'ocean_time',tind,1);
-  ncwrite(chd_data,'ocean_time',ptime+10);
+  ncwrite(chd_data,'ocean_time',ptime);
 
 % Get full parent grid and do triangulation
   lonp  = double(ncread(par_grd,'lon_rho')');%/10000;
