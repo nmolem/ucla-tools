@@ -1,45 +1,45 @@
 function add_coarse_grd(gname);
 
-lon = ncread(gname,'lon_rho');
-lat = ncread(gname,'lat_rho');
-h   = ncread(gname,'h');
-ang = ncread(gname,'angle');
-mask= ncread(gname,'mask_rho');
-
- lonc = f2c(lon);
- latc = f2c(lat);
- hc   = f2c(h);
- angc = f2c(ang);
- maskc= f2c(mask);
- maskc(maskc>0.5)=1;
- maskc(maskc<0.5)=0;
-
- [nxc,nyc] = size(lonc);
-
- % Check if the coarse variables already exist in the grid file
- % Otherwise, create the coarse variables
- info = ncinfo(gname);
- nvars = length(info.Variables);
- present = 0;
- for i=1:nvars
-   if strcmp(info.Variables(i).Name,'lon_coarse')
-     present = 1;
+  % Check if the coarse variables already exist in the grid file
+  % Otherwise, create the coarse variables
+   info = ncinfo(gname);
+   nvars = length(info.Variables);
+   for i=1:nvars
+     if strcmp(info.Variables(i).Name,'lon_coarse')
+       display('Found coarse grid variables in grid file')
+       return
+     end
    end
- end
 
- if ~present % can't add if already added
+   disp('Adding coarse lon/lat to grid')
+
+   lon = ncread(gname,'lon_rho');
+   lat = ncread(gname,'lat_rho');
+   h   = ncread(gname,'h');
+   ang = ncread(gname,'angle');
+   mask= ncread(gname,'mask_rho');
+
+   lonc = f2c(lon);
+   latc = f2c(lat);
+   hc   = f2c(h);
+   angc = f2c(ang);
+   maskc= f2c(mask);
+   maskc(maskc>0.5)=1;
+   maskc(maskc<0.5)=0;
+
+   [nxc,nyc] = size(lonc);
+
    nccreate(gname,'lon_coarse','dimensions',{'xi_coarse',nxc,'eta_coarse',nyc},'datatype','double');
    nccreate(gname,'lat_coarse','dimensions',{'xi_coarse',nxc,'eta_coarse',nyc},'datatype','double');
    nccreate(gname,'angle_coarse','dimensions',{'xi_coarse',nxc,'eta_coarse',nyc},'datatype','double');
    nccreate(gname,'h_coarse','dimensions',{'xi_coarse',nxc,'eta_coarse',nyc},'datatype','double');
    nccreate(gname,'mask_coarse','dimensions',{'xi_coarse',nxc,'eta_coarse',nyc},'datatype','double');
- end
 
- ncwrite(gname,'lon_coarse',lonc);
- ncwrite(gname,'lat_coarse',latc);
- ncwrite(gname,'angle_coarse',angc);
- ncwrite(gname,'mask_coarse',maskc);
- ncwrite(gname,'h_coarse',hc);
+   ncwrite(gname,'lon_coarse',lonc);
+   ncwrite(gname,'lat_coarse',latc);
+   ncwrite(gname,'angle_coarse',angc);
+   ncwrite(gname,'mask_coarse',maskc);
+   ncwrite(gname,'h_coarse',hc);
 
 return
 %--------------------------------------------------

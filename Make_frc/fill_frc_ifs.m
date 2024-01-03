@@ -1,106 +1,42 @@
-% fill_frc_frc
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%  Make a ROMS bulk forcing file using IFS hourly data
+%  Make a ROMS bulk forcing file using ECNWF hourly data
+%  Called by: 'make_frc'
 %
-%  2023, Jeroen Molemaker, Pierre Damien, UCLA
+%  2020-2024, Jeroen Molemaker, Pierre Damien, UCLA
 %
 %  Possible future work
-% - Extend lon_frc (and data) when grids straddle the prime meridian
-% - Investigate over which time period the fluxes are integrated (centered or shifted)
 % - Add the effect of surface pressure on Qair and other things
 % - Maybe force the model with Tair and Dew point instead of Humidity
 %
-%%%%%%%%%%%%%%%%%%%%% USER-DEFINED VARIABLES %%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  frc climatology file names:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-frc_dir = '/zulu/DATASETS/IFS/';
-
-% Set a date range for the forcing file
-start_date = datenum(2017,07,01);
-end_date   = datenum(2017,09,30);
-
-%grdname = '/zulu/nmolem/PACHUG/pachug_grd.nc';
-%disname = '/zulu/nmolem/PACHUG/pachug_cdist.mat';
-%rivname = '/zulu/nmolem/PACHUG/pachug_swf.nc';
-%root_name='/zulu/nmolem/PACHUG/pachug';
-
-%grdname  = '/zulu/nmolem/NWPAC/nwpac_grd.nc';
-%disname  = '/zulu/nmolem/NWPAC/nwpac_cdist.mat';
-%root_name= '/zulu/nmolem/NWPAC/nwpac';
-
-%grdname   ='/zulu/nmolem/NORMAR/normar_grd.nc';
-%disname   ='/zulu/nmolem/NORMAR/normar_cdist.mat';
-%root_name ='/zulu/nmolem/NORMAR/normar';
-
-%grdname   ='/zulu/nmolem/GREEN/green_grd.nc';
-%disname   ='/zulu/nmolem/GREEN/green_cdist.mat';
-%root_name ='/zulu/nmolem/GREEN/green';
-
-%grdname  = '/zulu/nmolem/NEPAC/nepac_grd.nc';
-%disname  = '/zulu/nmolem/NEPAC/nepac_cdist.mat';
-%root_name='/zulu/nmolem/NEPAC/nepac';
-
-%grdname  = '/zulu/nmolem/LUZON/luzon_grd.nc';
-%disname  = '/zulu/nmolem/LUZON/luzon_cdist.mat';
-%root_name= '/zulu/nmolem/LUZON/luzon';
-
-%grdname  = '/zulu/nmolem/ANGAUR/angaur_grd.nc';
-%disname  = '/zulu/nmolem/ANGAUR/angaur_cdist.mat';
-%root_name= '/zulu/nmolem/ANGAUR/angaur';
-
-grdname  = '/zulu/nmolem/WESTC/westc_grd.nc';
-disname  = '/zulu/nmolem/WESTC/westc_cdist.mat';
-root_name= '/zulu/nmolem/WESTC/westc';
-
-%grdname  = '/zulu/nmolem/SMODE/smode_grd.nc';
-%disname  = '/zulu/nmolem/SMODE/smode_cdist.mat';
-%root_name= '/zulu/nmolem/SMODE/smode';
-
-%grdname  = '/zulu/nmolem/HRTEST/hrtest_grd.nc';
-%root_name= '/zulu/nmolem/HRTEST/hrtest';
-
-
-maskname   = [frc_dir 'IFS_mask.nc'];
-swcorrname = [frc_dir 'IFS_rad_cor.nc'];
-
-coarse_frc   = 1; % forcing files at half the resolution of the grid
-rad_corr     = 1; % Multiplicative correction of swr and lwr to observations
-wind_dropoff = 0; % Spatial field to represent coastal wind dropoff 
-add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
-
-%
-%%%%%%%%%%%%%%%%%%% END USER-DEFINED VARIABLES %%%%%%%%%%%%%%%%%%%%%%%
-
-%
-   ifslist = dir([frc_dir 'IFS*nc']);
-   nfiles = length(ifslist);
+   frclist = dir([frc_dir frc_source '_Y*']);
+   nfiles = length(frclist);
 
    % find the right files
-   stimes = zeros(nfiles,1);
+   stime = zeros(nfiles,1);
    for i=1:nfiles
-     datname = [frc_dir ifslist(i).name];
+     datname = [frc_dir frclist(i).name];
      stime(i) = double(ncread(datname,'time',[1],[1]))/24 + datenum(1900,1,1);
    end
-   t0 = find(stime<start_date,1,'last');
+   t0 = find(stime<=start_date,1,'last');
    t1 = find(stime>end_date,1,'first');
 
+   if stime(t1)-1./24 >= end_date
+    t1 = t1-1;
+   end
 
-   t0 = t0+1
    % trim list of filenames
-   ifslist = ifslist(t0:t1);
-   nfiles = length(ifslist);
+   frclist = frclist(t0:t1);
+   nfiles = length(frclist);
 
    % Read in data coordinates and set data trim.
    disp(' ')
-   disp(' Read in the target grid')
    if coarse_frc
-%    if ~exist(grdname,'file')
-       disp('adding coarse lon/lat to grid')
-       add_coarse_grd(grdname);
-%    end
+     add_coarse_grd(grdname);
+
      disp('Reading coarse grid')
      lon = ncread(grdname,'lon_coarse');
      lat = ncread(grdname,'lat_coarse');
@@ -113,41 +49,60 @@ add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
    end
    [nx,ny] = size(lon);
 
-   lon = mod(lon,360); %% IFS forcing data is in the 0 to 360 longitude range
+   lon0 = min(lon(:));
+   lon1 = max(lon(:));
+   lat0 = min(lat(:));
+   lat1 = max(lat(:));
+
+   % Figure out if the grid is straddling the dateline.
+
+   % Assume that straddles are in the [-180,180] range
+   if lon0<0 & lon1>0
+     grd.straddle = 1;
+   else
+     grd.straddle = 0;
+     lon = mod(lon,360); %% Atmospheric data is in the 0 to 360 longitude range
+   end
+
    cosa = cos(ang);
    sina = sin(ang);
 
    grd.lon = lon;
    grd.lat = lat;
 
-   lon0 = min(lon(:));
-   lon1 = max(lon(:));
-   lat0 = min(lat(:));
-   lat1 = max(lat(:));
-
    disp(' ')
    disp(' Read in the data grid')
 
-   datname = [frc_dir ifslist(1).name];
+   datname = [frc_dir frclist(1).name];
    lon_frc = ncread(datname,'longitude');
    lat_frc = ncread(datname,'latitude');
 
-   i0 = find(lon_frc<lon0,1,'last');
-   i1 = find(lon_frc>lon1,1,'first');
+   if grd.straddle
+     % lon0 is negative, lon1 positive
+     i0 = find(lon_frc-360<lon0,1,'last');
+     i1 = find(lon_frc    >lon1,1,'first');
+     lon_frc = [lon_frc(i0:end)'-360 lon_frc(1:i1)']';
+   else
+     i0 = find(lon_frc<lon0,1,'last');
+     i1 = find(lon_frc>lon1,1,'first');
+     lon_frc = lon_frc(i0:i1);
+   end
 
-   % IFS is written in upside down order, latitude is decreasing
-
+   % Atmospheric data is written in upside down order, latitude is decreasing
    j0 = find(lat_frc>lat1,1,'last');
    j1 = find(lat_frc<lat0,1,'first');
-   fnx = i1-i0+1;
-   fny = j1-j0+1;
-
-   lon_frc = lon_frc(i0:i1);
    lat_frc = flipud(lat_frc(j0:j1));
 
-   mask = ncread(maskname,'mask',[i0 j0 1],[fnx fny 1]); 
-   mask = fliplr(mask); % to deal with upside down IFS data
+   fnx = length(lon_frc);
+   fny = length(lat_frc);
 
+   if grd.straddle
+     mask = [ ncread(maskname,'mask',[i0 j0],[inf fny])' ...
+              ncread(maskname,'mask',[ 1 j0],[ i1 fny])' ]';
+   else
+     mask =   ncread(maskname,'mask',[i0 j0],[fnx fny]);
+   end
+   mask = fliplr(mask); % To deal with upside down data
 
    if wind_dropoff
      if ~exist(disname)
@@ -156,22 +111,32 @@ add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
        load(disname)
      end
      cdist = cdist/1e3;
-%    mult = 1-0.6*exp(-0.08*cdist);
      mult = 1-0.4*exp(-0.08*cdist);
    end
 
-   % prepare for short and long wave radiation correction
+   % Prepare for short and long wave radiation correction
    if rad_corr
-     corr_time = ncread(swcorrname,'time'); % time in year days
+     corr_time = ncread(rcorname,'time'); % time in year days
      swr_mult = zeros(nx,ny,12);
      lwr_mult = zeros(nx,ny,12);
      for i=1:12
-       corr_swr  = ncread(swcorrname,'ssr_corr',[i0 j0 i],[fnx fny 1]); 
+       if grd.straddle
+         corr_swr = [ ncread(rcorname,'ssr_corr',[i0 j0 i],[inf fny 1])' ...
+                      ncread(rcorname,'ssr_corr',[ 1 j0 i],[ i1 fny 1])' ]';
+       else
+         corr_swr =   ncread(rcorname,'ssr_corr',[i0 j0 i],[fnx fny 1]);
+       end
        corr_swr = fliplr(corr_swr);
        corr_swr(mask<1) = nan;
        corr_swr = inpaint_nans(corr_swr,2);
        swr_mult(:,:,i) = interp2(lon_frc,lat_frc,corr_swr',lon,lat,'makima');
-       corr_lwr  = ncread(swcorrname,'strd_corr',[i0 j0 i],[fnx fny 1]); 
+
+       if grd.straddle
+         corr_lwr = [ ncread(rcorname,'strd_corr',[i0 j0 i],[inf fny 1])' ...
+                      ncread(rcorname,'strd_corr',[ 1 j0 i],[ i1 fny 1])' ]';
+       else
+         corr_lwr =   ncread(rcorname,'strd_corr',[i0 j0 i],[fnx fny 1]);
+       end
        corr_lwr = fliplr(corr_lwr);
        corr_lwr(mask<1) = nan;
        corr_lwr = inpaint_nans(corr_lwr,2);
@@ -187,14 +152,14 @@ add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
 
    % Loop over data files
    for i = 1:nfiles
-     datname = [frc_dir ifslist(i).name];
-     disp([' Processing: ' ifslist(i).name])
+     datname = [frc_dir frclist(i).name];
+     disp([' Processing: ' frclist(i).name])
 
      dat_time = ncread(datname,'time');
      nrecord = length(dat_time);
 
      date_num = double(dat_time(1)/24) + datenum(1900,1,1);
-     label = datestr(date_num,'YYYYmmdd')
+     label = datestr(date_num,'YYYYmm')
 
      frcname = [root_name '_frc.' label '.nc'] 
 
@@ -202,6 +167,7 @@ add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
      data.lon = lon_frc;
      data.lat = lat_frc;
      data.i0 = i0;
+     data.i1 = i1;
      data.j0 = j0;
      data.fnx = fnx;
      data.fny = fny;
@@ -211,7 +177,7 @@ add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
        delete(frcname)
      end
      create_frc_bulk(grdname,frcname,coarse_frc);
-     ncwriteatt(frcname,'/','Data Source','IFS (9 km nominal res)');
+     ncwriteatt(frcname,'/','Data Source',dsatt);
 
 
      for irec = 1:nrecord
@@ -224,13 +190,11 @@ add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
        % the hourly times of the outputs. This is because the raw output
        % of the IFS model is the integrated flux between the current and the
        % previous time (also see the division by 3600 below)
-       rad_time = time - 0.5;
 
        % translate to days since 2000,1,1
        days = double(time)/24. + datenum(1900,1,1) - datenum(2000,1,1);
-       rad_days = double(rad_time)/24. + datenum(1900,1,1) - datenum(2000,1,1);
        ncwrite(frcname,'time',days,[irec]);
-       ncwrite(frcname,'rad_time',rad_days,[irec]);
+       ncwrite(frcname,'rad_time',days-0.5/24,[irec]);
 
        % ---- 10 meter winds -----
        u = get_frc_era(data,grd,'u10',irec,'makima');
@@ -252,17 +216,18 @@ add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
        swr = get_frc_era(data,grd,'ssr',irec,'linear');  % downward_shortwave_flux [J/m2]
        lwr = get_frc_era(data,grd,'strd',irec,'linear'); % downward_longwave_flux [J/m2]
 
-	% Translate to fluxes. IFS outputs values integrated over 1 hour
-	% For the governing times, see above for rad_time
+	% Translate to fluxes from values that are integrated over 1 hour
+	% Governing times are offset by 30 minutes (rad_time)
 	swr = swr/3600;
 	lwr = lwr/3600;
 
-        if rad_corr
-          % -- Correction to swr and lwr using  NASA  dataset -----
-          % This is a multiplicative correcting, trying to account for 
-          % for errors in the IFS cloud cover
-          % temporal interpolation in a monthly climatology
-          yr_day = mod(rad_days,365.25);
+	if rad_corr
+          % Multiplicative correction to net shortwave and incoming
+	  % long wave radiation. This correction is trying to account for 
+	  % for errors in the model's cloud coveing a monthly satellite
+	  % climatology
+
+          yr_day = mod(days,365.25);
           if yr_day>=corr_time(12)
             id0 = 12;
             id1 =  1;
@@ -270,16 +235,16 @@ add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
           elseif yr_day<=corr_time(1)
             id0 = 12;
             id1 =  1;
-	    cf  = (yr_day - corr_time(12)+365.25)/(corr_time(1)+365.25-corr_time(12));
+            cf  = (yr_day - corr_time(12)+365.25)/(corr_time(1)+365.25-corr_time(12));
           else
             id0 = find(yr_day>corr_time,1,'last');
 	    id1 = id0+1;
 	    cf  = (yr_day - corr_time(id0))/(corr_time(id1)-corr_time(id0));
-	  end
-	  swr_cr = cf*swr_mult(:,:,id0) + (1-cf)*swr_mult(:,:,id1);
-	  lwr_cr = cf*lwr_mult(:,:,id0) + (1-cf)*lwr_mult(:,:,id1);
-	  swr= swr.*swr_cr;
-	  lwr= lwr.*lwr_cr;
+          end
+          swr_cr = cf*swr_mult(:,:,id0) + (1-cf)*swr_mult(:,:,id1);
+          swr= swr.*swr_cr;
+          lwr_cr = cf*lwr_mult(:,:,id0) + (1-cf)*lwr_mult(:,:,id1);
+          lwr= lwr.*lwr_cr;
         end % rad_corr
 
 	ncwrite(frcname,'swrad',swr,[1 1 irec]);
@@ -293,7 +258,7 @@ add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
 	d2m = d2m - 273.15; % K to C
         Qair=(exp((17.625*d2m)./(243.04+d2m))./exp((17.625*t2m)./(243.04+t2m)));  % Relative humidity fraction
 
-        % Relative to absolute humidity assuming constand pressure
+        % Relative to absolute humidity assuming constant pressure
 
         patm=1010.0; 
 
@@ -307,8 +272,7 @@ add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
 	% ---- Rain ------
 	rain = get_frc_era(data,grd,'tp',irec,'linear'); % precipitation [m]
 
-	% Translate to fluxes. ERA5 stores values integrated over 1 hour
-	% Are these centered around the current time? 
+	% Translate to fluxes from values integrated over 1 hour
 	if 0 % output in m/s
           rain = rain/3600;
         else % output in cm/day

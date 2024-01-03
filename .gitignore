@@ -19,12 +19,11 @@ dist/
 # Package files
 *.jar
 
-# Maven
-target/
-dist/
+# Editing swp files
+*.swp
 
-# JetBrains IDE
-.idea/
+# matlab files
+*.mat
 
 # Unit test reports
 TEST*.xml

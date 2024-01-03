@@ -31,20 +31,6 @@ mask(hraw > 0) = 0;
 %
 % Fill the grid file
 %
-%nc=netcdf(grdname,'write');
-%nc{'pm'}(:)   = pm;
-%nc{'pn'}(:)   = pn;
-%nc{'angle'}(:)= angle;
-%nc{'hraw'}(:) = hraw;
-%nc{'f'}(:)    = f;
-%nc{'mask_rho'}(:) = mask;
-%nc{'lon_rho'}(:) = lon*180/pi;  %% (degrees)
-%nc{'lat_rho'}(:) = lat*180/pi;  %% (degrees)
-%nc{'spherical'}(:)='T';
-%close(nc);
-%nc{'tra_lon'}(:)= tra_lon;
-%nc{'tra_lat'}(:)= tra_lat;
-%nc{'rotate'}(:) = rot;
 ncwrite(grdname,'pm',pm');
 ncwrite(grdname,'pn',pn');
 ncwrite(grdname,'angle',angle')
@@ -57,7 +43,5 @@ ncwrite(grdname,'spherical','T')
 ncwrite(grdname,'tra_lon',tra_lon)
 ncwrite(grdname,'tra_lat',tra_lat)
 ncwrite(grdname,'rotate',rot)
-%nc{'lon_psi'}(:) = lone(2:end-1,2:end-1)*180/pi;  %% (degrees)
-%nc{'lat_psi'}(:) = late(2:end-1,2:end-1)*180/pi;  %% (degrees)
 %
 
