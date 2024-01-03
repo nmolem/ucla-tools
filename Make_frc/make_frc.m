@@ -6,13 +6,6 @@
 %
 %  2020-2024, Jeroen Molemaker, Pierre Damien, UCLA
 %
-%  To do
-% - Extend lon_frc (and data) when grids straddle the prime meridian
-% - Fix start and end date functionality
-
-%  Future work
-% - Add the effect of surface pressure on Qair and other things
-% - Maybe force the model with Tair and Dew point instead of Humidity
 %
 %%%%%%%%%%%%%%%%%%%%% USER-DEFINED VARIABLES %%%%%%%%%%%%%%%%%%%%%%%%%
 %

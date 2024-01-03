@@ -3,7 +3,7 @@
 %  Make a ROMS bulk forcing file using ECNWF hourly data
 %  Called by: 'make_frc'
 %
-%  2020-2024, Jeroen Molemaker, Pierre Damien, UCLA
+%  2020-2024, Jeroen Molemaker, UCLA
 %
 %  Possible future work
 % - Add the effect of surface pressure on Qair and other things
