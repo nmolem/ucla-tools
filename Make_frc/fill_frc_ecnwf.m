@@ -188,9 +188,9 @@
        % ---- time -----
        time = ncread(datname,'time',[irec],[1]);
 
-       % time for the fluxes (radiation and rain) is centered between
+       % Time for the fluxes (radiation and rain) is centered between
        % the hourly times of the outputs. This is because the raw output
-       % of the IFS model is the integrated flux between the current and the
+       % of the ECNWF models is the integrated flux between the current and the
        % previous time (also see the division by 3600 below)
 
        % translate to days since 2000,1,1
@@ -218,10 +218,9 @@
        swr = get_frc_era(data,grd,'ssr',irec,'linear');  % downward_shortwave_flux [J/m2]
        lwr = get_frc_era(data,grd,'strd',irec,'linear'); % downward_longwave_flux [J/m2]
 
-	% Translate to fluxes from values that are integrated over 1 hour
-	% Governing times are offset by 30 minutes (rad_time)
-	swr = swr/3600;
-	lwr = lwr/3600;
+       % Translate to fluxes, [W/m2] from values that are integrated over 1 hour
+       swr = swr/3600;
+       lwr = lwr/3600;
 
 	if rad_corr
           % Multiplicative correction to net shortwave and incoming
