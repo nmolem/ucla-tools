@@ -160,7 +160,7 @@ switch popup_sel_index
       m_plot(out_lon*180/pi,out_lat*180/pi,'r')
       m_grid
       hold on
-      m_gshhs_i('patch',[.7 .7 .7],'edgecolor','k')
+      m_gshhs_i('patch',[.7 .7 .7],'edgecolor','k');
       m_plot(out_lon*180/pi,out_lat*180/pi,'r')
 %     m_coast('patch',[.7 .7 .7],'edgecolor','k');
 %     m_plot(clon,clat,'k')
@@ -173,7 +173,7 @@ switch popup_sel_index
       m_grid
       hold on
 %     m_coast('patch',[.7 .7 .7],'edgecolor','k');
-      m_gshhs_i('patch',[.7 .7 .7],'edgecolor','k')
+      m_gshhs_i('patch',[.7 .7 .7],'edgecolor','k');
       m_plot(lone(2:end-1,2:end-1)*180/pi,late(2:end-1,2:end-1)*180/pi,'.b')
       m_plot(out_lon*180/pi,out_lat*180/pi,'r')
 %     m_plot(clon,clat,'k')
