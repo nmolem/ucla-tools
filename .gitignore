@@ -7,6 +7,9 @@
 node_modules/
 dist/
 
+# Netcdf files
+*.nc
+
 # Compiled Java class files
 *.class
 

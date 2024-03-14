@@ -14,29 +14,14 @@
 if 1
  clear all
  close all
- wrk_dir = '/paracas/nmolem/NEPAC/';
- grdname   = [wrk_dir, 'nepac_grd.nc'];
- frcname   = [wrk_dir, 'nepac_riv.nc'];
- wrk_dir = '/paracas/nmolem/LUZON/';
- grdname   = [wrk_dir, 'luzon_grd.nc'];
- frcname   = [wrk_dir, 'luzon_riv.nc'];
- wrk_dir = '/paracas/nmolem/GREEN/';
- grdname   = [wrk_dir, 'green_grd.nc'];
- frcname   = [wrk_dir, 'green_riv.nc'];
- wrk_dir = '/paracas/nmolem/WESTC/';
- grdname   = [wrk_dir, 'westc_grd.nc'];
- frcname   = [wrk_dir, 'westc_riv.nc'];
- wrk_dir = '/paracas/nmolem/SMODE/';
- grdname   = [wrk_dir, 'smode_grd.nc'];
- frcname   = [wrk_dir, 'smode_riv.nc'];
-%wrk_dir = '/paracas/nmolem/SFBAY/';
-%grdname   = [wrk_dir, 'sfbay_grd.nc'];
-%frcname   = [wrk_dir, 'sfbay_riv.nc'];
+ wrk_dir = '/zulu/nmolem/PACHUG/';
+ grdname   = [wrk_dir, 'pachug_grd.nc'];
+ frcname   = [wrk_dir, 'pachug_riv.nc'];
 end
 %
 %  runoff climatology file names:
 %
-runoff_dir = '/paracas/DATASETS/';
+runoff_dir = '/zulu/DATASETS/';
 runoff_data  = [runoff_dir,'coastal-stns-Vol-monthly.updated-May2019.nc'];
 
 mask = ncread(grdname,'mask_rho');
@@ -93,6 +78,7 @@ if 1
  m2s_frc = ncread(runoff_data,'ratio_m2s');
  riv_frc = ncread(runoff_data,'riv_name');
  vol_frc = ncread(runoff_data,'vol_stn');
+ ocn_frc = ncread(runoff_data,'ocn_name');
  [nr,nt] = size(flx_frc);
  lon_frc = mod(lon_frc,360);
  else
@@ -105,20 +91,38 @@ if 1
   flx_frc = 2e3*ones(360,1); % m3/s
  end
 
-
+ check_basin = 1;
+ if check_basin % remove rivers not in the intended ocean basins
+   % Basin names: 'ATL','MED','IND','PAC','SOC','ARC'
+   out = zeros(nr);
+   for i = 1:nr
+     if  ~(strcmp(ocn_frc(1:3,i)','PAC') | strcmp(ocn_frc(1:3,i)','IND'))
+       out(i) = 1;
+     end
+   end
+   out = logical(out);
+%  lon_frc(out) = [];
+%  lat_frc(out) = [];
+%  flx_frc(out) = [];
+%  m2s_frc(out) = [];
+%  riv_frc(out) = [];
+%  vol_frc(out) = [];
+%  nr = length(lon_frc);
+ end
 
  d2r = pi/180;
  iloc = 0*lon_frc;
  jloc = 0*lon_frc;
- mindist = 0*lon_frc;
+ mindist = 1e6 + 0*lon_frc;
  for i = 1:length(lon_frc)
-   dist = gc_dist(lon*d2r,lat*d2r,lon_frc(i)*d2r,lat_frc(i)*d2r);
-   mindist(i) = min(dist(:));
-   if mindist(i) < mean(dx(:))
-     [iloc(i),jloc(i)] = find(dist==mindist(i));
+   if ~out(i)
+     dist = gc_dist(lon*d2r,lat*d2r,lon_frc(i)*d2r,lat_frc(i)*d2r);
+     mindist(i) = min(dist(:));
+     if mindist(i) < mean(dx(:))
+       [iloc(i),jloc(i)] = find(dist==mindist(i));
+     end
    end
  end
-
 
  % toss the rivers outside the grid
  out = mindist>mean(dx(:));
@@ -130,6 +134,7 @@ if 1
  riv_lon = zeros(1,nriv);
  riv_lat = zeros(1,nriv);
  riv_vol = zeros(1,nriv);
+ riv_nam = char(zeros(30,nriv));
  iriv = 0;
  for i = 1:nr
    if ~out(i)
@@ -139,6 +144,9 @@ if 1
      riv_lat(iriv)   = lat_frc(i);
      riv_nam(:,iriv) = riv_frc(:,i) ;
      riv_vol(iriv)   = vol_frc(i).*m2s_frc(i) ;
+%    if i==53
+%      [iriv, lon_frc(i), lat_frc(i) riv_nam(:,i)']
+%    end
    end
  end
  riv_tim = tim_frc;
@@ -154,11 +162,12 @@ if 1
 
 % Edit the 2d field with river fluxes
 
+ hwidth = 300;
 
  for iriv = 1:nriv
 
    if iriv==1
-    jloc(iriv) = jloc(iriv) +200;
+%   jloc(iriv) = jloc(iriv) +200;
    end
    	 
    disp(['River : ' num2str(iriv) '/' num2str(nriv) ' --> ' riv_nam(:,iriv)'])
@@ -168,10 +177,10 @@ if 1
    disp(['Cumulative Flux = ' num2str(Cml*100) '%'])
    disp('***************')
 
-   i0 = max(iloc(iriv)-400,1);
-   i1 = min(iloc(iriv)+400,nx);
-   j0 = max(jloc(iriv)-400,1);
-   j1 = min(jloc(iriv)+400,ny);
+   i0 = max(iloc(iriv)-hwidth,1);
+   i1 = min(iloc(iriv)+hwidth,nx);
+   j0 = max(jloc(iriv)-hwidth,1);
+   j1 = min(jloc(iriv)+hwidth,ny);
 
    % edit the mask if needed
 

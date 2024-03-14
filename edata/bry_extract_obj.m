@@ -19,14 +19,14 @@
 
 % -- START USER INPUT ----------
 % Parent grid directory and file name
-pdir    = '/paracas/nmolem/GREEN/';
-pname   = 'green_grd.nc';
-ename   = 'green_edata.nc';
+pdir    = '/zulu/nmolem/NEPAC/';
+pname   = 'nepac_grd.nc';
+ename   = 'nepac_edata.nc';
 
 % Child grid directory and file name
-cdir    = '/paracas/nmolem/GWAKE/';
-cname   = 'gwake_grd.nc';
-gname   = 'gwake'
+cdir    = '/zulu/nmolem/SFB/';
+cname   = 'sfb_grd.nc';
+gname   = 'sfb'
 
 % Output file name and info
 info    = ['indices for ' cname ' in ' pname];
@@ -36,8 +36,8 @@ info    = ['indices for ' cname ' in ' pname];
  obc_west = 1;
  obc_east = 1;
  obc_south= 1;
- obc_north= 1;
- period =   900;
+ obc_north= 0;
+ period =  1800;
 
 
 % -- END USER INPUT ------------

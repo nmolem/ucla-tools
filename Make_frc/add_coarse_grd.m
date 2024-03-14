@@ -41,7 +41,8 @@ function add_coarse_grd(gname);
    ncwrite(gname,'mask_coarse',maskc);
    ncwrite(gname,'h_coarse',hc);
 
-return
+ return
+end
 %--------------------------------------------------
 function  fc = f2c(f)
 
@@ -51,6 +52,7 @@ function  fc = f2c(f)
  fc = fc';
 
  return
+end
 
 %--------------------------------------------------
 function  fc = f2c_xdir(f)
@@ -64,5 +66,6 @@ function  fc = f2c_xdir(f)
  fc(nxcp,:) = f(nxp,:) + 0.5*(f(nxp,:)-f(nxp-1,:));
 
  return
+end
 
 

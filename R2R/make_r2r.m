@@ -52,11 +52,11 @@ disp(' ')
     bry_cycle            =  0;             % 0 means no cycle
     bry_filename         = 'sample_child_bry.nc'; % bry filename
     bry_type             = 'his';         % 'avg', 'his' or 'rst'
-    total_num_files      =   1;            % number of files to read
-    first_file           =   0;            % first avg/his file, eg roms_avg.0282.nc gives 282
+    total_num_files      =   3;            % number of files to read
+    first_file           =  42;            % first avg/his file, eg roms_avg.0282.nc gives 282
     first_record         =   1;            % desired record no. from first avg/his file
-    last_record          =   2;            % desired record no. from last avg/his file
-    num_records_per_file =   2;            % number of records per parent output file
+    last_record          =   3;            % desired record no. from last avg/his file
+    num_records_per_file =   3;            % number of records per parent output file
 
 %---------------------------------------------------------------------------------------
 % USER-DEFINED VARIABLES & OPTIONS END HERE

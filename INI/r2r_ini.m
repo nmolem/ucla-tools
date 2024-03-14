@@ -10,10 +10,9 @@
 %
 
     % Parent...
-      par_dir    = '/paracas/nmolem/TWAKE/';
-      par_grd    = 'FRC/twake_grd.nc';
-      par_file   = 'twake_rst.20140829002209.nc';
-
+      par_dir    = '/zulu/nmolem/PACHUG/';
+      par_grd    = 'pachug_grd.nc';
+      par_file   = 'pachug_rst.20161231235500.nc';
       par_tind   = 1;            % frame number in parent file
       par_thetas = 6.0;
       par_thetab = 6.0;
@@ -22,13 +21,13 @@
       parscoord  = 'new2008';    % parent 'new' or 'old' type scoord
 
     % Child...
-      chd_dir    = '/paracas/nmolem/GREEN/';
-      chd_grd    = 'green_grd.nc';
-      chd_file   = 'green_ini.20140829.nc';        % name of new ini file
+      chd_dir    = '/zulu/nmolem/NEPAC/';
+      chd_grd    = 'nepac_grd.nc';
+      chd_file   = 'nepac_ini.20161231.nc';        % name of new ini file
       chd_thetas = 6.0;
       chd_thetab = 6.0;
       chd_hc     = 250.0;
-      chd_N      = 200;
+      chd_N      = 100;
       chdscoord  = 'new2008';                 % child 'new' or 'old' type scoord
 
 
