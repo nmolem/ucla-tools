@@ -12,6 +12,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
    frclist = dir([frc_dir frc_source '_Y*']);
+   frclist = frclist(1:end-10);
    nfiles = length(frclist);
 
    % find the right files
@@ -117,7 +118,7 @@
    if rad_corr
      corr_time = ncread(rcorname,'time'); % time in year days
      swr_mult = zeros(nx,ny,12);
-     lwr_mult = zeros(nx,ny,12);
+     lwr_mult = ones(nx,ny,12);
      for i=1:12
        if grd.straddle
          corr_swr = [ ncread(rcorname,'ssr_corr',[i0 j0 i],[inf fny 1])' ...
@@ -130,6 +131,7 @@
        corr_swr = inpaint_nans(corr_swr,2);
        swr_mult(:,:,i) = interp2(lon_frc,lat_frc,corr_swr',lon,lat,'makima');
 
+       if 0 % no long wave radiation correction
        if grd.straddle
          corr_lwr = [ ncread(rcorname,'strd_corr',[i0 j0 i],[inf fny 1])' ...
                       ncread(rcorname,'strd_corr',[ 1 j0 i],[ i1 fny 1])' ]';
@@ -140,6 +142,7 @@
        corr_lwr(mask<1) = nan;
        corr_lwr = inpaint_nans(corr_lwr,2);
        lwr_mult(:,:,i) = interp2(lon_frc,lat_frc,corr_lwr',lon,lat,'makima');
+       end  % no radiation correction
      end
    end % rad_corr
 
@@ -303,6 +306,7 @@
 	ncwrite(frcname,'rain',rain, [1 1 irec]);
 
      end
-   end % 
+
+   end % 1:nfiles
 
 

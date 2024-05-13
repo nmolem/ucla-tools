@@ -49,51 +49,51 @@ ncwriteatt(inifile,'hc','units','meter');
 nccreate(inifile,'sc_r','Dimensions',{'s_rho',N},'datatype','single');
 nccreate(inifile,'Cs_r','Dimensions',{'s_rho',N},'datatype','single');
 
-nccreate(inifile,'ocean_time','Dimensions',{'time',1},'datatype','single');
+nccreate(inifile,'ocean_time','Dimensions',{'time',1},'datatype','double');
 ncwriteatt(inifile,'ocean_time','long_name','time since initialization');
 ncwriteatt(inifile,'ocean_time','units','second');
 
-nccreate(inifile,'u','Dimensions',{'xi_u',L,'eta_u',Mp,'s_rho',N,'time',1},'datatype','single');
+nccreate(inifile,'u','Dimensions',{'xi_u',L,'eta_u',Mp,'s_rho',N,'time',1},'datatype','double');
 ncwriteatt(inifile,'u','long_name','u-flux component');
 ncwriteatt(inifile,'u','units','meter second-1');
 %
-nccreate(inifile,'v','Dimensions',{'xi_v',Lp,'eta_v',M,'s_rho',N,'time',1},'datatype','single');
+nccreate(inifile,'v','Dimensions',{'xi_v',Lp,'eta_v',M,'s_rho',N,'time',1},'datatype','double');
 ncwriteatt(inifile,'v','long_name','v-flux component');
 ncwriteatt(inifile,'v','units','meter second-1');
 %
-nccreate(inifile,'w','Dimensions',{'xi_rho',Lp,'eta_rho',Mp,'s_w',Np,'time',1},'datatype','single');
+nccreate(inifile,'w','Dimensions',{'xi_rho',Lp,'eta_rho',Mp,'s_w',Np,'time',1},'datatype','double');
 ncwriteatt(inifile,'w','long_name','w-flux component');
 ncwriteatt(inifile,'w','units','meter second-1');
 %
-nccreate(inifile,'ubar','Dimensions',{'xi_u',L,'eta_u',Mp,'time',1},'datatype','single');
+nccreate(inifile,'ubar','Dimensions',{'xi_u',L,'eta_u',Mp,'time',1},'datatype','double');
 ncwriteatt(inifile,'ubar','long_name','vertically integrated u-flux component');
 ncwriteatt(inifile,'ubar','units','meter second-1');
 %
-nccreate(inifile,'vbar','Dimensions',{'xi_v',Lp,'eta_v',M,'time',1},'datatype','single');
+nccreate(inifile,'vbar','Dimensions',{'xi_v',Lp,'eta_v',M,'time',1},'datatype','double');
 ncwriteatt(inifile,'vbar','long_name','vertically integrated v-flux component');
 ncwriteatt(inifile,'vbar','units','meter second-1');
 %
-nccreate(inifile,'zeta','Dimensions',{'xi_rho',Lp,'eta_rho',Mp,'time',1},'datatype','single');
+nccreate(inifile,'zeta','Dimensions',{'xi_rho',Lp,'eta_rho',Mp,'time',1},'datatype','double');
 ncwriteatt(inifile,'zeta','long_name','free surface');
 ncwriteatt(inifile,'zeta','units','meter');
 %
-nccreate(inifile,'temp','Dimensions',{'xi_rho',Lp,'eta_rho',Mp,'s_rho',N,'time',1},'datatype','single');
+nccreate(inifile,'temp','Dimensions',{'xi_rho',Lp,'eta_rho',Mp,'s_rho',N,'time',1},'datatype','double');
 ncwriteatt(inifile,'temp','long_name','potential temperature');
 ncwriteatt(inifile,'temp','units','Celcius');
 %
-nccreate(inifile,'salt','Dimensions',{'xi_rho',Lp,'eta_rho',Mp,'s_rho',N,'time',1},'datatype','single');
+nccreate(inifile,'salt','Dimensions',{'xi_rho',Lp,'eta_rho',Mp,'s_rho',N,'time',1},'datatype','double');
 ncwriteatt(inifile,'salt','long_name','Salinity');
 ncwriteatt(inifile,'salt','units','PSU');
 %
-nccreate(inifile,'u_slow','Dimensions',{'xi_u',L,'eta_rho',Mp,'s_rho',N,'time',1},'datatype','single');
+nccreate(inifile,'u_slow','Dimensions',{'xi_u',L,'eta_rho',Mp,'s_rho',N,'time',1},'datatype','double');
 ncwriteatt(inifile,'u_slow','long_name','Filtered u momentum');
 ncwriteatt(inifile,'u_slow','units','m/s');
 %
-nccreate(inifile,'v_slow','Dimensions',{'xi_rho',Lp,'eta_v',M,'s_rho',N,'time',1},'datatype','single');
+nccreate(inifile,'v_slow','Dimensions',{'xi_rho',Lp,'eta_v',M,'s_rho',N,'time',1},'datatype','double');
 ncwriteatt(inifile,'v_slow','long_name','Filtered v momentum');
 ncwriteatt(inifile,'v_slow','units','m/s');
 %
-nccreate(inifile,'p_slow','Dimensions',{'xi_rho',Lp,'eta_rho',Mp,'s_rho',N,'time',1},'datatype','single');
+nccreate(inifile,'p_slow','Dimensions',{'xi_rho',Lp,'eta_rho',Mp,'s_rho',N,'time',1},'datatype','double');
 ncwriteatt(inifile,'p_slow','long_name','Filtered pressure');
 ncwriteatt(inifile,'p_slow','units','P');
 %

@@ -19,14 +19,14 @@
 
 % -- START USER INPUT ----------
 % Parent grid directory and file name
-pdir    = '/zulu/nmolem/NEPAC/';
-pname   = 'nepac_grd.nc';
-ename   = 'nepac_edata.nc';
+pdir    = '/zulu/nmolem/SMODE/';
+pname   = 'smode_grd.nc';
+ename   = 'smode_edata.nc';
 
 % Child grid directory and file name
-cdir    = '/zulu/nmolem/SFB/';
-cname   = 'sfb_grd.nc';
-gname   = 'sfb'
+cdir    = '/zulu/nmolem/SFBAY/';
+cname   = 'sfbay_grd.nc';
+gname   = 'sfbay'
 
 % Output file name and info
 info    = ['indices for ' cname ' in ' pname];
@@ -34,9 +34,9 @@ info    = ['indices for ' cname ' in ' pname];
 % Open boundaries: south,west,north,east. 1=yes, 0=no.
 
  obc_west = 1;
- obc_east = 1;
+ obc_east = 0;
  obc_south= 1;
- obc_north= 0;
+ obc_north= 1;
  period =  1800;
 
 
@@ -44,7 +44,7 @@ info    = ['indices for ' cname ' in ' pname];
 
 ename = [pdir ename];
 
-if exist(ename) & 1
+if exist(ename) & 0
   delete(ename);                            % prevents overwriting error
 end
 

@@ -19,21 +19,25 @@
 
 % -- START USER INPUT ----------
 % Parent grid directory and file name
-pdir    = '/paracas/nmolem/GREEN/';
-pname   = 'green_grd.nc';
-ename   = 'green_edata.nc';
+pdir    = '/zulu/nmolem/ATIDE/CASE1/';
+pname   = 'atide_grd.nc';
+ename   = 'atide_edata.nc';
 
-gname = 'SEB1';
-lon = 121.4302;
-lat = 22.7702;
+%gname = 'SEB1';
+%lon = 121.4302;
+%lat = 22.7702;
 
 %gname = 'SEB2';
 %lon = 121.4428;
 %lat = 22.7978
 
-% Output file name and info
-info  = ['indices for ' gname ' in ' pname];
+%lon =-125.1; 
+%lat =  36.0;
+%gname = 'SWOT';
 
+lon =  1.7e6;
+lat =  0.5e6;
+gname = 'mooring2';
 
 %lon =-122.507; 
 %lat =  33.460;
@@ -47,6 +51,11 @@ info  = ['indices for ' gname ' in ' pname];
 %lat =  36.75;
 %gname = 'MBARI_M1'
 
+lon = lon+360;
+
+% Output file name and info
+info  = ['indices for ' gname ' in ' pname];
+
  period =  300;
  ang = 0;
  mooring_vars = 'zeta, temp, salt, u, v' ;
@@ -56,9 +65,14 @@ info  = ['indices for ' gname ' in ' pname];
 pname = [pdir pname];
 ename = [pdir ename];
 
-lonp = ncread(pname,'lon_rho');        
-latp = ncread(pname,'lat_rho');
-lonp = mod(lonp,360);
+if 0
+ lonp = ncread(pname,'lon_rho');        
+ latp = ncread(pname,'lat_rho');
+ lonp = mod(lonp,360);
+else
+ lonp = ncread(pname,'x_rho');        
+ latp = ncread(pname,'y_rho');
+end
 
 obj_name = gname;
 obj_lon = lon; % + 360;

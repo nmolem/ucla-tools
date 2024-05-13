@@ -14,15 +14,16 @@
 if 1
  clear all
  close all
- wrk_dir = '/zulu/nmolem/SCAL/';
- grdname   = [wrk_dir, 'scal_grd.nc'];
- frcname   = [wrk_dir, 'scal_riv.nc'];
+ wrk_dir = '/zulu/nmolem/SMODE/';
+ grdname   = [wrk_dir, 'smode_grd.nc'];
+ frcname   = [wrk_dir, 'smode_riv.nc'];
 end
 %
 %  runoff climatology file names:
 %
-runoff_dir = '/zulu/DATASETS/';
-runoff_data  = [runoff_dir,'coastal-stns-Vol-monthly.updated-May2019.nc'];
+runoff_dir = '/zulu/DATASETS/RIVERS/';
+%runoff_data  = [runoff_dir,'coastal-stns-Vol-monthly.updated-May2019.nc'];
+runoff_data  = [runoff_dir,'usgs_rivers.nc'];
 
 mask = ncread(grdname,'mask_rho');
 [nx ny] = size(mask);
@@ -63,7 +64,7 @@ mask = ncread(grdname,'mask_rho');
  [nx, ny] = size(lon);
  
 
- if 1 % reset river flux if needed
+ if 0 % reset river flux if needed
    rflx = 0*mask;
    ncwrite(grdname,'river_flux',rflx);
  end
@@ -71,14 +72,14 @@ mask = ncread(grdname,'mask_rho');
 % find the appropriate location of the river in the grid.
 
 if 1
- lon_frc = ncread(runoff_data,'lon_mou');
- lat_frc = ncread(runoff_data,'lat_mou');
+ lon_frc = ncread(runoff_data,'longitude');
+ lat_frc = ncread(runoff_data,'latitude');
  tim_frc = ncread(runoff_data,'time');
- flx_frc = ncread(runoff_data,'FLOW');
- m2s_frc = ncread(runoff_data,'ratio_m2s');
+ flx_frc = ncread(runoff_data,'flow');
+%m2s_frc = ncread(runoff_data,'ratio_m2s');
  riv_frc = ncread(runoff_data,'riv_name');
- vol_frc = ncread(runoff_data,'vol_stn');
- ocn_frc = ncread(runoff_data,'ocn_name');
+ vol_frc = ncread(runoff_data,'mean_flow');
+%ocn_frc = ncread(runoff_data,'ocn_name');
  [nr,nt] = size(flx_frc);
  lon_frc = mod(lon_frc,360);
  else
@@ -91,10 +92,10 @@ if 1
   flx_frc = 2e3*ones(360,1); % m3/s
  end
 
- check_basin = 1;
+ check_basin = 0;
  if check_basin % remove rivers not in the intended ocean basins
    % Basin names: 'ATL','MED','IND','PAC','SOC','ARC'
-   out = zeros(nr);
+   out = zeros(nr,1);
    for i = 1:nr
      if  ~(strcmp(ocn_frc(1:3,i)','PAC') | strcmp(ocn_frc(1:3,i)','IND'))
        out(i) = 1;
@@ -108,6 +109,8 @@ if 1
 %  riv_frc(out) = [];
 %  vol_frc(out) = [];
 %  nr = length(lon_frc);
+ else
+  out = logical(zeros(nr,1));
  end
 
  d2r = pi/180;
@@ -118,14 +121,17 @@ if 1
    if ~out(i)
      dist = gc_dist(lon*d2r,lat*d2r,lon_frc(i)*d2r,lat_frc(i)*d2r);
      mindist(i) = min(dist(:));
-     if mindist(i) < mean(dx(:))
+     if mindist(i) < 1e3*mean(dx(:))
        [iloc(i),jloc(i)] = find(dist==mindist(i));
      end
+   end
+   if i==18
+%   return
    end
  end
 
  % toss the rivers outside the grid
- out = mindist>mean(dx(:));
+ out = mindist>mean(dx(:))*1e3;
  iloc(out) = [];
  jloc(out) = [];
  mindist(out) = [];
@@ -139,11 +145,11 @@ if 1
  for i = 1:nr
    if ~out(i)
      iriv = iriv+1;
-     riv_flx(:,iriv) = flx_frc(i,:).*m2s_frc(i) ;
+     riv_flx(:,iriv) = flx_frc(i,:);
      riv_lon(iriv)   = lon_frc(i);
      riv_lat(iriv)   = lat_frc(i);
-     riv_nam(:,iriv) = riv_frc(:,i) ;
-     riv_vol(iriv)   = vol_frc(i).*m2s_frc(i) ;
+     riv_nam(:,iriv) = riv_frc(i,:);
+     riv_vol(iriv)   = vol_frc(i);
 %    if i==53
 %      [iriv, lon_frc(i), lat_frc(i) riv_nam(:,i)']
 %    end
@@ -160,11 +166,31 @@ if 1
  riv_nam = riv_nam(:,out) ;
  riv_vol = riv_vol(out) ;
 
+riv_flx(riv_flx<0) = 0;
+riv_vol(riv_vol<0) = 0;
+[riv_vol,idx] = sort(riv_vol,'descend');
+
+riv_flx_tmp = riv_flx;
+riv_lon_tmp = riv_lon;
+riv_lat_tmp = riv_lat;
+riv_nam_tmp = riv_nam;
+iloc_tmp = iloc;
+jloc_tmp = jloc;
+for i = 1:nriv
+  riv_flx(:,i) = riv_flx_tmp(:,idx(i));
+  riv_lon(i) = riv_lon_tmp(idx(i));
+  riv_lat(i) = riv_lat_tmp(idx(i));
+  riv_nam(:,i) = riv_nam_tmp(:,idx(i));
+  iloc(i) = iloc_tmp(idx(i));
+  jloc(i) = jloc_tmp(idx(i));
+end
+
 % Edit the 2d field with river fluxes
+
 
  hwidth = 300;
 
- for iriv = 1:nriv
+ for iriv = 20:nriv
 
    if iriv==1
 %   jloc(iriv) = jloc(iriv) +200;
@@ -172,7 +198,7 @@ if 1
    	 
    disp(['River : ' num2str(iriv) '/' num2str(nriv) ' --> ' riv_nam(:,iriv)'])
    disp(['(lon,lat)=(' num2str(riv_lon(iriv)) ',' num2str(riv_lat(iriv)) ')'])
-   disp(['Mean Flux = ' num2str(riv_vol(iriv)*1e9/(365*24*3600)) ' m3/s'])
+   disp(['Mean Flux = ' num2str(riv_vol(iriv)) ' m3/s'])
    Cml = sum(riv_vol(1:iriv))/sum(riv_vol) ;
    disp(['Cumulative Flux = ' num2str(Cml*100) '%'])
    disp('***************')
@@ -215,23 +241,11 @@ if 1
  end
  ncwrite(grdname,'river_flux',rflx);
 
+ riv_tim = tim_frc +datenum(1970,1,1);
 
- % Done with the river partitions, now write the volumes and tracer values
-
- % time , make seasonal cycle 
- riv_tim = datenum( round(floor(riv_tim*1e-2)) , round((riv_tim*1e-2-floor(riv_tim*1e-2))*1e2) , 15 ) ;
- riv_flx2=riv_flx;
- for t=1:12
-     mnth=find(str2num(datestr(riv_tim,'mm'))==t) ;
-     for m=1:length(mnth)
-     riv_flx2(mnth(m),:) = nanmean(riv_flx(mnth,:),1) ;
-     end
- end
  date_orig = datenum(2000,01,01) ;
  riv_tim = riv_tim - date_orig ;
- indfrst = find(riv_tim<0,1,'last') ;
- riv_tim = riv_tim(indfrst:end) ; 
- riv_flx = riv_flx2(indfrst:end,:) ;
+
  ntimes = length(riv_tim) ;
 
  nt = 2; % Temperature and Salinity only
@@ -269,7 +283,7 @@ if 1
    nccreate(frcname,'river_time','Dimensions',{'river_time',ntimes},'datatype','single');
    ncwriteatt(frcname,'river_time','long_name','river data time');
    ncwriteatt(frcname,'river_time','units','yearday');
-   ncwriteatt(frcname,'river_time','cycle_length',365.25);
+ % ncwriteatt(frcname,'river_time','cycle_length',365.25);
  else
    netcdf.close(ncid);
  end

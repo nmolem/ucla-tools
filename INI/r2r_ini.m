@@ -10,10 +10,10 @@
 %
 
     % Parent...
-      par_dir    = '/zulu/nmolem/PACHUG/';
-      par_grd    = 'pachug_grd.nc';
-      par_file   = 'pachug_rst.20161231235500.nc';
-      par_tind   = 1;            % frame number in parent file
+      par_dir    = '/zulu/nmolem/WESTC/';
+      par_grd    = 'westc_grd.nc';
+      par_file   = 'RST/westc_rst.20170607000000.nc';
+      par_tind   = 2;            % frame number in parent file
       par_thetas = 6.0;
       par_thetab = 6.0;
       par_hc     = 250.0;
@@ -21,9 +21,9 @@
       parscoord  = 'new2008';    % parent 'new' or 'old' type scoord
 
     % Child...
-      chd_dir    = '/zulu/nmolem/NEPAC/';
-      chd_grd    = 'nepac_grd.nc';
-      chd_file   = 'nepac_ini.20161231.nc';        % name of new ini file
+      chd_dir    = '/zulu/nmolem/SMODE/';
+      chd_grd    = 'smode_grd.nc';
+      chd_file   = 'smode_ini.20170607.nc';        % name of new ini file
       chd_thetas = 6.0;
       chd_thetab = 6.0;
       chd_hc     = 250.0;

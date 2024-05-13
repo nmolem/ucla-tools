@@ -20,13 +20,30 @@ function add_object(ename,obj_name,lonp,latp,period,obj_lon,obj_lat,obj_mask,obj
   obj_i = griddata(lons,lats,ips,obj_lon,obj_lat);
   obj_j = griddata(lons,lats,jps,obj_lon,obj_lat);
 
-% obj_i(obj_mask<1) = -1e5;
-% obj_j(obj_mask<1) = -1e5;
-
   if sum(isnan(obj_i))>0
+    % Attempt a fix for points outside the grid
     disp(obj_name)
-    disp('Some points are outside the grid and not masked!!')
-    error 'fatal'
+    obi_tmp = obj_i; obi_tmp(obj_mask<1) = [];
+    if sum(isnan(obi_tmp))>0
+      disp('Some points are outside the grid and not masked!!')
+      error 'fatal'
+    end
+    disp('Some masked points are outside the grid')
+    idx = [1:length(obj_i)];
+    nan_idx = isnan(obj_i)|obj_i>nxp-2|obj_i<0|obj_j>nyp-2|obj_j<0;
+    idx_tmp = idx; idx_tmp(nan_idx) = [];
+    obi_tmp = obj_i; obi_tmp(nan_idx) = [];
+    obj_tmp = obj_j; obj_tmp(nan_idx) = [];
+    obj_i(nan_idx) = interp1(idx_tmp,obi_tmp,idx(nan_idx),'nearest','extrap');
+    obj_j(nan_idx) = interp1(idx_tmp,obj_tmp,idx(nan_idx),'nearest','extrap');
+
+    if sum(isnan(obj_i))>0
+       sum(isnan(obj_i))
+       error 'nans'
+    end
+   [max(obi_tmp) max(obj_i)]
+%  [min(jps) max(obj_j)]
+
   end
   i_chk = obj_i; i_chk(obj_mask<1) = [];
   if (min(i_chk)<0)|(max(i_chk)>nxp-2)
@@ -39,6 +56,7 @@ function add_object(ename,obj_name,lonp,latp,period,obj_lon,obj_lat,obj_mask,obj
               
   obj_i(isnan(obj_i)) = -1e5;  
   obj_j(isnan(obj_j)) = -1e5;  
+
 
   np = length(obj_i);
 

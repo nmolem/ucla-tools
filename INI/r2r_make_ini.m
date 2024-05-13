@@ -288,11 +288,11 @@
       vd = reshape(A*reshape(vs, Np*Mp*Lp,1), Nc,Mc,Lc);
       ud_sl = reshape(A*reshape(us_sl, Np*Mp*Lp,1), Nc,Mc,Lc);
       vd_sl = reshape(A*reshape(vs_sl, Np*Mp*Lp,1), Nc,Mc,Lc);
-      figure(1)
-      imagesc(us(:,:,end)');axis xy
-      figure(2)
-      imagesc(ud(:,:,end)');axis xy
-      pause(1.0)
+%     figure(1)
+%     imagesc(us(:,:,end)');axis xy
+%     figure(2)
+%     imagesc(ud(:,:,end)');axis xy
+%     pause(1.0)
 
 
     % Rotate to child orientation

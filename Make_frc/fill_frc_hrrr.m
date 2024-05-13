@@ -1,107 +1,44 @@
-% fill_frc_hrrr
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  Make a ROMS bulk forcing file using HRRR hourly data
+%  Called by: 'make_frc'
 %
-%  2023, Jeroen Molemaker, Pierre Damien, UCLA
+%  2020-2024, Jeroen Molemaker, UCLA
 %
 %  Possible future work
-% - Extend lon_frc (and data) when grids straddle the prime meridian
-% - Investigate over which time period the fluxes are integrated (centered or shifted)
 % - Add the effect of surface pressure on Qair and other things
 % - Maybe force the model with Tair and Dew point instead of Humidity
 %
-%%%%%%%%%%%%%%%%%%%%% USER-DEFINED VARIABLES %%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  frc climatology file names:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-frc_dir = '/paracas/DATASETS/HRRR/2016/';
+   frclist = dir([frc_dir frc_source '_Y*']);
+   nfiles = length(frclist);
 
-% Set a date range for the forcing file
-start_date = datenum(2016,09,01);
-end_date   = datenum(2016,12,30);
-
-%grdname = '/paracas/nmolem/PACHUG/pachug_grd.nc';
-%disname = '/paracas/nmolem/PACHUG/pachug_cdist.mat';
-%rivname = '/paracas/nmolem/PACHUG/pachug_swf.nc';
-%root_name='/paracas/nmolem/PACHUG/pachug';
-
-%grdname  = '/paracas/nmolem/NWPAC/nwpac_grd.nc';
-%disname  = '/paracas/nmolem/NWPAC/nwpac_cdist.mat';
-%root_name= '/paracas/nmolem/NWPAC/nwpac';
-
-%grdname   ='/paracas/nmolem/NORMAR/normar_grd.nc';
-%disname   ='/paracas/nmolem/NORMAR/normar_cdist.mat';
-%root_name ='/paracas/nmolem/NORMAR/normar';
-
-%grdname   ='/paracas/nmolem/GREEN/green_grd.nc';
-%disname   ='/paracas/nmolem/GREEN/green_cdist.mat';
-%root_name ='/paracas/nmolem/GREEN/green';
-
-%grdname  = '/paracas/nmolem/NEPAC/nepac_grd.nc';
-%disname  = '/paracas/nmolem/NEPAC/nepac_cdist.mat';
-%root_name='/paracas/nmolem/NEPAC/nepac';
-
-%grdname  = '/paracas/nmolem/LUZON/luzon_grd.nc';
-%disname  = '/paracas/nmolem/LUZON/luzon_cdist.mat';
-%root_name= '/paracas/nmolem/LUZON/luzon';
-
-%grdname  = '/paracas/nmolem/ANGAUR/angaur_grd.nc';
-%disname  = '/paracas/nmolem/ANGAUR/angaur_cdist.mat';
-%root_name= '/paracas/nmolem/ANGAUR/angaur';
-
-grdname  = '/paracas/nmolem/WESTC/westc_grd.nc';
-disname  = '/paracas/nmolem/WESTC/westc_cdist.mat';
-root_name= '/paracas/nmolem/WESTC/westc';
-
-%grdname  = '/paracas/nmolem/SFBAY/sfbay_grd.nc';
-%disname  = '/paracas/nmolem/SFBAY/sfbay_cdist.mat';
-%root_name= '/paracas/nmolem/SFBAY/sfbay';
-
-%grdname  = '/paracas/nmolem/SMODE/smode_grd.nc';
-%disname  = '/paracas/nmolem/SMODE/smode_cdist.mat';
-%root_name= '/paracas/nmolem/SMODE/smode';
-
-%grdname  = '/paracas/nmolem/HRTEST/hrtest_grd.nc';
-%root_name= '/paracas/nmolem/HRTEST/hrtest';
-
-swcorrname = [frc_dir 'SSR_correction.nc'];
-
-
-coarse_frc   = 0; % forcing files at half the resolution of the grid
-add_rivers   = 0; % Adds river runoff as additional precipitation
-
-%
-%%%%%%%%%%%%%%%%%%% END USER-DEFINED VARIABLES %%%%%%%%%%%%%%%%%%%%%%%
-
-%
-   hrrrlist = dir([frc_dir 'HRRR_2*']);
-   nfiles = length(hrrrlist);
+   % HRRR time is in seconds since 1970
 
    % find the right files
-   stimes = zeros(nfiles,1);
+   stime = zeros(nfiles,1);
    for i=1:nfiles
-     datname = [frc_dir hrrrlist(i).name];
+     datname = [frc_dir frclist(i).name];
      stime(i) = double(ncread(datname,'time',[1],[1]))/(24*3600) + datenum(1970,1,1);
    end
-   t0 = find(stime<start_date,1,'last');
+   t0 = find(stime<=start_date,1,'last');
    t1 = find(stime>end_date,1,'first');
+   if end_date>=stime(end)
+    t1 = nfiles
+   end
+%  t0 = t0+1
 
-   t0 = t0+1
+
    % trim list of filenames
-   display('taking full set')
-%  hrrrlist = hrrrlist(t0:t1);
-   nfiles = length(hrrrlist);
+   frclist = frclist(t0:t1);
+   nfiles = length(frclist);
 
    % Read in data coordinates and set data trim.
    disp(' ')
-   disp(' Read in the target grid')
    if coarse_frc
-%    if ~exist(grdname,'file')
-       disp('adding coarse lon/lat to grid')
-       add_coarse_grd(grdname);
-%    end
+     add_coarse_grd(grdname);
+
      disp('Reading coarse grid')
      lon = ncread(grdname,'lon_coarse');
      lat = ncread(grdname,'lat_coarse');
@@ -124,7 +61,7 @@ add_rivers   = 0; % Adds river runoff as additional precipitation
    disp(' ')
    disp(' Read in the data grid')
 
-   datname = [frc_dir hrrrlist(1).name];
+   datname = [frc_dir frclist(1).name];
    lon_frc = ncread(datname,'longitude');
    lat_frc = ncread(datname,'latitude');
    ang_frc = calc_ang(lon_frc,lat_frc);
@@ -172,18 +109,6 @@ add_rivers   = 0; % Adds river runoff as additional precipitation
 %  mask = 1 + 0*lon_frc;
 
 
-   if 0 % turn off for now
-   % prepare for short wave radiation correction
-   corr_time = ncread(swcorrname,'time');
-   swr_mult = zeros(nx,ny,12);
-   for i=1:12
-     corr_swr  = ncread(swcorrname,'ssr_corr',[i0 j0 i],[fnx fny 1]); 
-     corr_swr = fliplr(corr_swr);
-     corr_swr(mask<1) = nan;
-     corr_swr = inpaint_nans(corr_swr,2);
-     swr_mult(:,:,i) = interp2(lon_frc,lat_frc,corr_swr',lon,lat,'makima');
-   end
-   end
 
    if add_rivers
      % prepare for the addition of river runoff to rain data
@@ -205,14 +130,14 @@ add_rivers   = 0; % Adds river runoff as additional precipitation
 
    % Loop over data files
    for i = 1:nfiles
-     datname = [frc_dir hrrrlist(i).name];
-     disp([' Processing: ' hrrrlist(i).name])
+     datname = [frc_dir frclist(i).name];
+     disp([' Processing: ' frclist(i).name])
 
      dat_time = ncread(datname,'time');
      nrecord = length(dat_time);
 
      date_num = double(dat_time(1)/(24*3600)) + datenum(1970,1,1);
-     label = datestr(date_num,'YYYYmmdd')
+     label = datestr(date_num,'YYYYmm')
 
      frcname = [root_name '_frc.' label '.nc'] 
 
@@ -233,15 +158,21 @@ add_rivers   = 0; % Adds river runoff as additional precipitation
 
 
      for irec = 1:nrecord
-        disp(['Record: ' num2str(irec)])
 
-	% ---- time -----
-	time = ncread(datname,'time',[irec],[1]);
+       if mod(irec,10)==0
+        disp(['Record: ' num2str(irec)])
+       end
+
+       % ---- time -----
+       time = ncread(datname,'time',[irec],[1]);
+
 
 	% translate to days since 2000,1,1
-%       days = double(dat_time(1)/24) + datenum(1900,1,1) - datenum(2000,1,1) 
-        days = double(time)/24. + datenum(1900,1,1) - datenum(2000,1,1);
+        days = double(time)/24./3600. + datenum(1970,1,1) - datenum(2000,1,1);
 	ncwrite(frcname,'time',days,[irec]);
+        ncwrite(frcname,'rad_time',days-0.5/24,[irec]);
+
+
 
 	% ---- 10 meter winds -----
 	u = get_frc_hrrr(data,grd,'UGRD_10maboveground',irec,'makima');

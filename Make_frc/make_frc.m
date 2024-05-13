@@ -12,16 +12,14 @@
 %  frc climatology file names:
 frc_root = '/zulu/DATASETS/';
 
-frc_source = 'IFS';  % ERA5/IFS/HRRR
+frc_source = 'HRRR'; % ERA5/IFS/HRRR
 
-% Set a date range for the forcing file
-start_date = datenum(2017,01,01);
-end_date   = datenum(2017,03,29);
+% Set a date range for the forcing files
+start_date = datenum(2017,06,02);
+end_date   = datenum(2017,08,30);
 
-grdname  = '/zulu/nmolem/GWAKE/gwake_grd.nc';
-root_name= '/zulu/nmolem/GWAKE/gwake';
-grdname  = '/zulu/nmolem/NEPAC/nepac_grd.nc';
-root_name= '/zulu/nmolem/NEPAC/nepac';
+grdname  = '/zulu/nmolem/SMODE/smode_grd.nc';
+root_name= '/zulu/nmolem/SMODE/smode';
 
 % Only needed in case of wind_dropoff=1
 disname  = '/zulu/nmolem/XXX/xxx_cdist.mat';
@@ -30,7 +28,7 @@ coarse_frc   = 1; % forcing files at half the resolution of the grid
 rad_corr     = 0; % Multiplicative correction of swr and lwr to observations
 
 wind_dropoff = 0; % Spatial field to represent coastal wind dropoff 
-add_rivers   = 0; % Adds river runoff as additional precipitation (obsolete)
+add_rivers   = 0; % Adds river runoff as additional precipitation (Obsolete)
 %
 %%%%%%%%%%%%%%%%%%% END USER-DEFINED VARIABLES %%%%%%%%%%%%%%%%%%%%%%%
 
@@ -53,9 +51,12 @@ switch frc_source
     fill_frc_ecnwf
   case 'HRRR'
     disp('Using HRRR atmospheric data')
+    dsatt = 'HRRR (3 km res)';
 
     frc_dir = [frc_root 'HRRR/'];
-    swcorrname = [frc_dir 'none'];
+    rcorrname = [frc_dir 'none'];
+    maskname  = [frc_dir 'hrrr_land.nc'];
+
     fill_frc_hrrr
   otherwise
     disp('Unknown atmospheric data source')

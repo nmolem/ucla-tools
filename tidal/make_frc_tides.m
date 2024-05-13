@@ -1,6 +1,6 @@
-   tname = '/paracas/DATASETS/tpxo9.v2a.nc';
-   gname = '/paracas/nmolem/SAMPLE/sample_grd_riv.nc';
-   fname = '/paracas/nmolem/SAMPLE/sample_tides.nc';
+   tname = '/zulu/DATASETS/tpxo9.v2a.nc';
+   gname = '/zulu/nmolem/SCAL/scal_grd.nc';
+   fname = '/zulu/nmolem/SCAL/scal_tides.nc';
 
    nc = 10; % number of tidal constituents
 
