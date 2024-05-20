@@ -66,7 +66,7 @@ sin2lat=sin(2.*d2r*lat);
       p_pha = -lon*d2r;
     elseif ityp(ic)==0                % long-term   
 %     error: p_amp = A(ic)*B(ic)*(1-1.5*coslat2);  Error
-      Pamp= A(ic)*B(ic)*(0.5-1.5*coslat2);
+      p_amp= A(ic)*B(ic)*(0.5-1.5*coslat2);
       p_pha = 0;
     end
     pc(:,:,ic) = p_amp.*exp(-cI*p_pha);
